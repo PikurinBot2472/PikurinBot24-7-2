@@ -6,7 +6,7 @@ import logging
 audio_url = "https://www.dropbox.com/scl/fi/ggkumfroq21oua2rjs8hu/2025-2026-J-POP-26-J-ROCK-bgm-djmix-bgm.mp3?rlkey=pom06f67ozsz05s24nllxqgss&st=rqsgeq4c&dl=1"
 TOKEN = 'MTI3NzE0Mjc5MjA3MzY0MjEwNA.GWEbX9.OZHmiEtul19btoFd6s7CqIqwclkYogrl-ZNSzw'
 
-channel_id = 1277188290121961586
+channel_id = 1277143484217692190
 
 intents = discord.Intents.all()
 intents.typing = False
