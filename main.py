@@ -11,8 +11,8 @@ AUDIO_FILE = "audio.mp3"
 TOKEN = os.environ["DISCORD_TOKEN"]
 CHANNEL_ID = 1277143484217692190
 
-intents = discord.Intents.all()
-intents.typing = False
+intents = discord.Intents.default()
+intents.voice_states = True
 client = discord.Client(intents=intents)
 
 logging.basicConfig(level=logging.INFO)
@@ -33,7 +33,7 @@ async def download_audio():
     log.info("音源ダウンロード完了")
 
 
-# ---------- VC接続保証（安定版） ----------
+# ---------- VC接続保証 ----------
 async def ensure_voice(channel: discord.VoiceChannel):
     vc = channel.guild.voice_client
 
@@ -48,7 +48,8 @@ async def ensure_voice(channel: discord.VoiceChannel):
 
     await asyncio.sleep(2)
 
-    return await channel.connect(self_deaf=True, reconnect=True)
+    log.info("VC接続")
+    return await channel.connect(self_deaf=True)
 
 
 # ---------- 再生 ----------
@@ -58,32 +59,18 @@ def start_play(vc: discord.VoiceClient):
 
     source = discord.FFmpegPCMAudio(
         AUDIO_FILE,
-        options="-vn"
+        before_options="-stream_loop -1",
+        options="-vn -loglevel quiet"
     )
 
-    def after(err):
-        if err:
-            log.error(f"再生エラー: {err}")
-
-        if vc.is_connected():
-            asyncio.run_coroutine_threadsafe(
-                delayed_restart(vc), client.loop
-            )
-
-    vc.play(source, after=after)
+    vc.play(source)
     log.info("音声再生開始")
-
-
-async def delayed_restart(vc):
-    await asyncio.sleep(2)
-    start_play(vc)
 
 
 # ---------- メインループ ----------
 async def play_loop(channel):
     await client.wait_until_ready()
 
-    # Discord起動安定待機
     await asyncio.sleep(5)
 
     await download_audio()
@@ -91,12 +78,15 @@ async def play_loop(channel):
     while True:
         try:
             vc = await ensure_voice(channel)
-            start_play(vc)
-            await asyncio.sleep(10)
+
+            if not vc.is_playing():
+                start_play(vc)
+
+            await asyncio.sleep(30)
 
         except Exception:
             log.exception("メインループエラー")
-            await asyncio.sleep(5)
+            await asyncio.sleep(10)
 
 
 # ---------- 起動 ----------
