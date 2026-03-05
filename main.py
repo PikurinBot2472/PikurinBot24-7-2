@@ -93,6 +93,13 @@ async def play_loop(channel):
 @client.event
 async def on_ready():
     log.info("ログインしました")
+    
+    # VCセッションを完全リセット
+    for vc in client.voice_clients:
+        try:
+            await vc.disconnect(force=True)
+        except:
+            pass
 
     await client.change_presence(
         activity=discord.Game(name="Pikurinサーバー専用BOT")
